@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grundy Number Calculator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: #58a6ff;
+    margin-bottom: 0.4rem;
+  }
+
+  header p {
+    font-size: 0.9rem;
+    color: #7d8590;
+    font-family: 'Courier New', monospace;
+  }
+
+  .panel {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .panel h2 {
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #7d8590;
+    margin-bottom: 1rem;
+  }
+
+  .input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .field label {
+    font-size: 0.8rem;
+    color: #8b949e;
+    font-family: 'Courier New', monospace;
+  }
+
+  input[type="text"], input[type="number"] {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #e6edf3;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="text"] { width: 260px; }
+  input[type="number"] { width: 120px; }
+
+  input[type="text"]:focus, input[type="number"]:focus {
+    border-color: #58a6ff;
+  }
+
+  button#calcBtn {
+    background: #1f6feb;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    padding: 0.52rem 1.5rem;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  button#calcBtn:hover { background: #388bfd; }
+  button#calcBtn:active { background: #1158c7; }
+
+  .error {
+    color: #f85149;
+    font-size: 0.82rem;
+    font-family: 'Courier New', monospace;
+    margin-top: 0.5rem;
+    min-height: 1.2em;
+  }
+
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 0.9rem 1.2rem;
+    flex: 1;
+    min-width: 130px;
+  }
+
+  .stat-card .label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #7d8590;
+    margin-bottom: 0.3rem;
+    font-family: 'Courier New', monospace;
+  }
+
+  .stat-card .value {
+    font-size: 1.4rem;
+    font-family: 'Courier New', monospace;
+    color: #58a6ff;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+  }
+
+  thead tr {
+    border-bottom: 1px solid #30363d;
+  }
+
+  thead th {
+    color: #7d8590;
+    font-weight: 400;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #21262d;
+    transition: background 0.1s;
+  }
+
+  tbody tr:hover { background: #1c2128; }
+
+  tbody tr.losing { background: rgba(248, 81, 73, 0.06); }
+  tbody tr.losing:hover { background: rgba(248, 81, 73, 0.12); }
+
+  tbody td {
+    padding: 0.45rem 0.75rem;
+    color: #e6edf3;
+  }
+
+  .g0 {
+    color: #f85149;
+    font-weight: bold;
+  }
+
+  .gpos {
+    color: #3fb950;
+  }
+
+  .badge {
+    display: inline-block;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .badge-p {
+    background: rgba(63, 185, 80, 0.15);
+    color: #3fb950;
+    border: 1px solid rgba(63, 185, 80, 0.3);
+  }
+
+  .badge-n {
+    background: rgba(248, 81, 73, 0.12);
+    color: #f85149;
+    border: 1px solid rgba(248, 81, 73, 0.25);
+  }
+
+  .grid-section {
+    margin-top: 1.5rem;
+  }
+
+  .grid-section h2 {
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #7d8590;
+    margin-bottom: 0.75rem;
+  }
+
+  .grundy-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .grundy-cell {
+    width: 46px;
+    height: 46px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', monospace;
+    cursor: default;
+    border: 1px solid transparent;
+    transition: border-color 0.1s;
+  }
+
+  .grundy-cell:hover {
+    border-color: #58a6ff;
+  }
+
+  .grundy-cell .n-label {
+    font-size: 0.6rem;
+    color: #7d8590;
+    line-height: 1;
+  }
+
+  .grundy-cell .g-label {
+    font-size: 1rem;
+    font-weight: bold;
+    line-height: 1.2;
+  }
+
+  .cell-0 { background: rgba(248, 81, 73, 0.18); }
+  .cell-0 .g-label { color: #f85149; }
+  .cell-pos { background: rgba(255,255,255,0.03); }
+  .cell-pos .g-label { color: #8b949e; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-family: 'Courier New', monospace;
+    color: #8b949e;
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 2.5rem;
+    font-size: 0.75rem;
+    color: #484f58;
+    font-family: 'Courier New', monospace;
+  }
+
+  #output { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Grundy Number Calculator</h1>
+    <p>One-pile Nim · Sprague–Grundy theory</p>
+  </header>
+
+  <div class="panel">
+    <h2>Parameters</h2>
+    <div class="input-row">
+      <div class="field">
+        <label>Move set (step)</label>
+        <input type="text" id="stepInput" value="1, 4, 5" placeholder="e.g. 1, 4, 5">
+      </div>
+      <div class="field">
+        <label>Max n</label>
+        <input type="number" id="nInput" value="50" min="1">
+      </div>
+      <button id="calcBtn">Calculate</button>
+    </div>
+    <div class="error" id="errMsg"></div>
+  </div>
+
+  <div id="output">
+    <div class="stats" id="statsRow"></div>
+
+    <div class="panel grid-section">
+      <h2>Grundy values — color map</h2>
+      <div class="grundy-grid" id="grundyGrid"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#f85149;opacity:.7"></div>G = 0 (P-position)</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Full table</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>n</th>
+              <th>G(n)</th>
+              <th>Position</th>
+              <th>Reachable from n</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>G(n) = mex{ G(n−s) : s ∈ step, n−s ≥ 0 }</footer>
+</div>
+
+<script>
+function computeGrundy(n, step) {
+  const g = new Array(n + 1);
+  for (let i = 0; i <= n; i++) {
+    const reachable = new Set();
+    for (const s of step) {
+      if (i - s >= 0) reachable.add(g[i - s]);
+    }
+    let mex = 0;
+    while (reachable.has(mex)) mex++;
+    g[i] = mex;
+  }
+  return g;
+}
+
+function detectPeriod(g) {
+  const minLen = 3;
+  const maxPeriod = Math.floor(g.length / 2);
+  outer: for (let p = 1; p <= maxPeriod; p++) {
+    const start = g.length - 2 * p;
+    if (start < minLen) continue;
+    for (let i = 0; i < p; i++) {
+      if (g[start + i] !== g[start + p + i]) continue outer;
+    }
+    return p;
+  }
+  return null;
+}
+
+function cellClass(gv) {
+  return gv === 0 ? 'cell-0' : 'cell-pos';
+}
+
+document.getElementById('calcBtn').addEventListener('click', () => {
+  const errMsg = document.getElementById('errMsg');
+  errMsg.textContent = '';
+
+  const stepRaw = document.getElementById('stepInput').value;
+  const nVal = parseInt(document.getElementById('nInput').value);
+
+  const step = stepRaw.split(/[\s,，]+/).map(x => parseInt(x.trim())).filter(x => !isNaN(x) && x > 0);
+
+  if (step.length === 0) { errMsg.textContent = 'Please enter at least one positive integer move.'; return; }
+  if (isNaN(nVal) || nVal < 1) { errMsg.textContent = 'Max n must be a positive integer.'; return; }
+
+  const g = computeGrundy(nVal, step);
+
+  const pCount = g.filter(x => x === 0).length;
+  const maxG = Math.max(...g);
+  const period = detectPeriod(g);
+
+  const statsRow = document.getElementById('statsRow');
+  statsRow.innerHTML = `
+    <div class="stat-card"><div class="label">move set</div><div class="value" style="font-size:1rem">{${step.join(', ')}}</div></div>
+    <div class="stat-card"><div class="label">max n</div><div class="value">${nVal}</div></div>
+    <div class="stat-card"><div class="label">P-positions (G=0)</div><div class="value">${pCount}</div></div>
+    <div class="stat-card"><div class="label">max G value</div><div class="value">${maxG}</div></div>
+    <div class="stat-card"><div class="label">period</div><div class="value">${period !== null ? period : '—'}</div></div>
+  `;
+
+  const grid = document.getElementById('grundyGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i <= nVal; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'grundy-cell ' + cellClass(g[i]);
+    cell.title = `n=${i}, G=${g[i]}`;
+    cell.innerHTML = `<span class="n-label">${i}</span><span class="g-label">${g[i]}</span>`;
+    grid.appendChild(cell);
+  }
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  for (let i = 0; i <= nVal; i++) {
+    const reachable = step.filter(s => i - s >= 0).map(s => `${i-s}→G=${g[i-s]}`).join(', ') || '—';
+    const isP = g[i] === 0;
+    const tr = document.createElement('tr');
+    if (isP) tr.className = 'losing';
+    tr.innerHTML = `
+      <td>${i}</td>
+      <td class="${isP ? 'g0' : 'gpos'}">${g[i]}</td>
+      <td><span class="badge ${isP ? 'badge-n' : 'badge-p'}">${isP ? 'P' : 'N'}</span></td>
+      <td style="font-size:0.78rem;color:#7d8590">${reachable}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('output').style.display = 'block';
+});
+
+document.getElementById('calcBtn').click();
+</script>
+</body>
+</html>
